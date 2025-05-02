@@ -1,0 +1,1 @@
+   & 'C:\Android\android-sdk\emulator\emulator.exe' -avd Pixel_6_API_35
