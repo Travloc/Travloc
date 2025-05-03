@@ -56,46 +56,67 @@ lib/
     - Custom widgets
     - Material Design 3
     - Adaptive layouts
-- Maps & Location
-  - Mapbox SDK (Primary)
-    - Custom map styles
-    - 3D buildings
-    - Terrain data
-  - Google Maps SDK (Fallback)
-  - Geolocator package
-    - Background location
-    - Geofencing
 - State Management
   - Riverpod (Primary)
     - Dependency injection
     - State persistence
     - Testing utilities
-  - BLoC (Alternative)
-    - Event-driven architecture
-    - Complex state logic
+  - Hooks (Secondary)
+    - Reusable logic
+    - State management
+- Maps & Location
+  - Mapbox SDK (Primary)
+    - Custom map styles
+    - 3D buildings
+    - Terrain data
+  - Geolocator package
+    - Background location
+    - Geofencing
 - Networking
-  - dio (Primary)
-    - Interceptors
-    - Form data
-    - File uploads
-  - http (Fallback)
-- Real-time Features
-  - socket_io_client
-    - Auto-reconnection
-    - Namespace support
-  - web_socket_channel
-    - Binary data support
-    - Ping/pong
-- Voice UI
-  - speech_to_text
-    - Continuous listening
-    - Partial results
-  - flutter_tts
-    - Voice selection
-    - Speech rate control
-  - Custom voice integration
-    - Wake word detection
-    - Voice commands
+  - http (Primary)
+    - REST API integration
+    - Error handling
+    - Response parsing
+- Storage
+  - flutter_secure_storage
+    - Secure key-value storage
+    - Token management
+  - shared_preferences
+    - Local preferences
+    - Cache management
+- UI Components
+  - flutter_svg
+    - Vector graphics
+    - Custom icons
+  - cached_network_image
+    - Image caching
+    - Progressive loading
+  - flutter_animate
+    - Smooth animations
+    - Transitions
+- Internationalization
+  - intl
+    - Date formatting
+    - Number formatting
+  - flutter_localizations
+    - Multi-language support
+    - RTL support
+- Utilities
+  - google_fonts
+    - Custom typography
+    - Font management
+  - logger
+    - Debug logging
+    - Error tracking
+  - connectivity_plus
+    - Network status
+    - Offline detection
+  - permission_handler
+    - Permission management
+    - Location access
+  - flutter_dotenv
+    - Environment variables
+    - Configuration management
 
 ### Backend (Custom API Server)
 - API Server
@@ -135,16 +156,6 @@ lib/
     - Authentication
     - Real-time updates
     - Offline support
-- Auth & Security
-  - Firebase Auth
-    - Social login
-    - Phone auth
-  - App Check
-    - Device attestation
-    - API protection
-  - OAuth2
-    - Token management
-    - Refresh tokens
 
 ### AI + Voice Intelligence Layer
 - AI Engine

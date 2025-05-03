@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:travloc/core/theme/app_theme.dart';
+import 'package:travloc/core/widgets/layout/app_layout.dart';
+import 'package:travloc/features/explore/presentation/screens/explore_screen.dart';
 
 void main() {
   runApp(
@@ -20,10 +22,8 @@ class TravlocApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      home: const Scaffold(
-        body: Center(
-          child: Text('Welcome to Travloc'),
-        ),
+      home: const AppLayout(
+        child: ExploreScreen(),
       ),
     );
   }
