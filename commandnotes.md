@@ -4,3 +4,10 @@ flutter clean
 flutter devices
 flutter run --verbose
 ./gradlew clean
+
+
+
+
+
+
+
