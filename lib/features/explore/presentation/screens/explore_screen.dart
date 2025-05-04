@@ -136,9 +136,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
     return 1.0 - (totalDuration / 120.0); // 120 minutes = 2 hours
   }
 
-  Future<void> _centerMapOnLocation(BuildContext ctx) async {
+  Future<void> _centerMapOnLocation(ScaffoldMessengerState messenger) async {
     if (_currentPosition != null) {
-      final messenger = ScaffoldMessenger.of(ctx);
       _mapController.centerOnLocation(_currentPosition!);
       if (!mounted) return;
       messenger.showSnackBar(
@@ -243,7 +242,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
       }
     }
 
-    await _centerMapOnLocation(ctx);
+    await _centerMapOnLocation(messenger);
   }
 
   @override
