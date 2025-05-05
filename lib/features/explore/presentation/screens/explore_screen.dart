@@ -252,12 +252,12 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // Voice Card
+            // Voice Card (AI Planner)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.fromLTRB(6, 12, 6, 0),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFCFF5E7),
+                  color: const Color(0xFFBFFF2A), // vibrant lime
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -333,13 +333,10 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
             // Map Card (Expanded)
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 6,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD6E6FF),
+                    color: Colors.white, // clear white
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
@@ -417,10 +414,10 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
             ),
             // Event Card
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+              padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF3C7),
+                  color: const Color(0xFFB7A6FF), // purple
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -444,7 +441,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
                           children: [
                             const Icon(
                               Icons.event,
-                              color: Colors.amber,
+                              color: Colors.black,
                               size: 20,
                             ),
                             const SizedBox(width: 6),
@@ -453,23 +450,29 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.black87,
+                                color: Colors.black,
                               ),
                             ),
                           ],
                         ),
-                        TextButton(
-                          onPressed: _navigateToEvents,
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(40, 30),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 6,
                           ),
-                          child: const Text(
-                            'View All',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
+                          decoration: BoxDecoration(
+                            color: Color(0xFFBFFF2A), // vibrant lime
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: GestureDetector(
+                            onTap: _navigateToEvents,
+                            child: const Text(
+                              'View All',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
                         ),
@@ -482,14 +485,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
                           : 'No upcoming events',
                       style: const TextStyle(
                         fontSize: 13,
-                        color: Colors.grey,
+                        color: Colors.black,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 8),
                     LinearProgressIndicator(
                       value: _eventProgress,
-                      backgroundColor: Colors.grey[200],
+                      backgroundColor: Colors.white,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         Colors.amber[700]!,
                       ),

@@ -1,162 +1,416 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/segmented_tab_control.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen>
+    with SingleTickerProviderStateMixin {
+  static const String _tabStorageKey = 'profile_tab_index';
+  late TabController _tabController;
+  final List<String> _tabs = ['Account', 'Travel', 'Support'];
+  final PageStorageBucket _bucket = PageStorageBucket();
+
+  @override
+  void initState() {
+    super.initState();
+    int initialTab =
+        PageStorage.of(context).readState(context, identifier: _tabStorageKey)
+            as int? ??
+        0;
+    _tabController = TabController(
+      length: _tabs.length,
+      vsync: this,
+      initialIndex: initialTab,
+    );
+    _tabController.addListener(_handleTabChangeSetState);
+    _tabController.addListener(_handleTabChange);
+  }
+
+  void _handleTabChange() {
+    if (_tabController.indexIsChanging ||
+        _tabController.index !=
+            (PageStorage.of(
+                      context,
+                    ).readState(context, identifier: _tabStorageKey)
+                    as int? ??
+                0)) {
+      PageStorage.of(
+        context,
+      ).writeState(context, _tabController.index, identifier: _tabStorageKey);
+    }
+  }
+
+  void _handleTabChangeSetState() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_handleTabChangeSetState);
+    _tabController.removeListener(_handleTabChange);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.go('/settings'),
+      backgroundColor: const Color(0xFF181A20),
+      body: PageStorage(
+        bucket: _bucket,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(6, 12, 6, 0),
+                  children: [
+                    // Header
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha((0.08 * 255).toInt()),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          CircleAvatar(
+                            radius: 36,
+                            backgroundColor: const Color(0xFFB7A6FF),
+                            child: const Icon(
+                              Icons.person,
+                              size: 40,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 18),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'John Doe',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 22,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'john.doe@example.com',
+                                  style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF7F8FA),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withAlpha(
+                                    (0.08 * 255).toInt(),
+                                  ),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.settings,
+                                color: Colors.black,
+                              ),
+                              onPressed: () => context.go('/settings'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Stats/Progress Card (optional, placeholder)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFBFFF2A),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha((0.08 * 255).toInt()),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      margin: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 16,
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.emoji_events,
+                            color: Colors.black,
+                            size: 32,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'Profile Progress',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Complete your profile to unlock more features!',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            child: const Text(
+                              '78%',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // TabBarView for animated tab switching
+                    SizedBox(
+                      height: 320, // Adjust height as needed for your cards
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildTabSection(context, 0),
+                          _buildTabSection(context, 1),
+                          _buildTabSection(context, 2),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SafeArea(
+                top: false,
+                minimum: const EdgeInsets.only(bottom: 8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: SegmentedTabControl(
+                    tabs: _tabs,
+                    currentIndex: _tabController.index,
+                    currentPosition:
+                        _tabController.animation?.value ??
+                        _tabController.index.toDouble(),
+                    onTabSelected: (index) {
+                      setState(() {
+                        _tabController.index = index;
+                        PageStorage.of(context).writeState(
+                          context,
+                          index,
+                          identifier: _tabStorageKey,
+                        );
+                      });
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile Header
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    child: const Icon(
-                      Icons.person,
-                      size: 40,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'John Doe',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'john.doe@example.com',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(),
-            // Profile Sections
-            _buildSection(context, 'Account', [
-              _buildListTile(
-                context,
-                'Personal Information',
-                Icons.person_outline,
-                () => context.go('/profile/personal-info'),
-              ),
-              _buildListTile(
-                context,
-                'Security',
-                Icons.security,
-                () => context.go('/profile/security'),
-              ),
-              _buildListTile(
-                context,
-                'Notifications',
-                Icons.notifications_outlined,
-                () => context.go('/profile/notifications'),
-              ),
-            ]),
-            _buildSection(context, 'Travel', [
-              _buildListTile(
-                context,
-                'My Trips',
-                Icons.card_travel,
-                () => context.go('/profile/trips'),
-              ),
-              _buildListTile(
-                context,
-                'Saved Places',
-                Icons.bookmark_border,
-                () => context.go('/profile/saved-places'),
-              ),
-              _buildListTile(
-                context,
-                'Travel Preferences',
-                Icons.settings,
-                () => context.go('/profile/preferences'),
-              ),
-            ]),
-            _buildSection(context, 'Support', [
-              _buildListTile(
-                context,
-                'Help Center',
-                Icons.help_outline,
-                () => context.go('/profile/help'),
-              ),
-              _buildListTile(
-                context,
-                'Contact Support',
-                Icons.support_agent,
-                () => context.go('/profile/support'),
-              ),
-              _buildListTile(
-                context,
-                'About',
-                Icons.info_outline,
-                () => context.go('/profile/about'),
-              ),
-            ]),
-          ],
         ),
       ),
     );
   }
 
-  Widget _buildSection(
-    BuildContext context,
-    String title,
-    List<Widget> children,
-  ) {
+  Widget _buildTabSection(BuildContext context, int tab) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.only(left: 4, bottom: 6, top: 2),
           child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
+            _tabs[tab],
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.white,
             ),
           ),
         ),
-        ...children,
-        const Divider(),
+        if (tab == 0) ..._buildAccountSection(context),
+        if (tab == 1) ..._buildTravelSection(context),
+        if (tab == 2) ..._buildSupportSection(context),
       ],
     );
   }
 
-  Widget _buildListTile(
+  List<Widget> _buildAccountSection(BuildContext context) {
+    return [
+      _profileCard(
+        context,
+        'Personal Information',
+        Icons.person_outline,
+        () => context.go('/profile/personal-info'),
+        color: const Color(0xFFB7A6FF),
+      ),
+      _profileCard(
+        context,
+        'Security',
+        Icons.security,
+        () => context.go('/profile/security'),
+        color: const Color(0xFFFFD6E0),
+      ),
+      _profileCard(
+        context,
+        'Notifications',
+        Icons.notifications_outlined,
+        () => context.go('/profile/notifications'),
+        color: const Color(0xFFBFFF2A),
+      ),
+    ];
+  }
+
+  List<Widget> _buildTravelSection(BuildContext context) {
+    return [
+      _profileCard(
+        context,
+        'My Trips',
+        Icons.card_travel,
+        () => context.go('/profile/trips'),
+        color: const Color(0xFFB7A6FF),
+      ),
+      _profileCard(
+        context,
+        'Saved Places',
+        Icons.bookmark_border,
+        () => context.go('/profile/saved-places'),
+        color: const Color(0xFFFFD6E0),
+      ),
+      _profileCard(
+        context,
+        'Travel Preferences',
+        Icons.settings,
+        () => context.go('/profile/preferences'),
+        color: const Color(0xFFBFFF2A),
+      ),
+    ];
+  }
+
+  List<Widget> _buildSupportSection(BuildContext context) {
+    return [
+      _profileCard(
+        context,
+        'Help Center',
+        Icons.help_outline,
+        () => context.go('/profile/help'),
+        color: const Color(0xFFB7A6FF),
+      ),
+      _profileCard(
+        context,
+        'Contact Support',
+        Icons.support_agent,
+        () => context.go('/profile/support'),
+        color: const Color(0xFFFFD6E0),
+      ),
+      _profileCard(
+        context,
+        'About',
+        Icons.info_outline,
+        () => context.go('/profile/about'),
+        color: const Color(0xFFBFFF2A),
+      ),
+    ];
+  }
+
+  Widget _profileCard(
     BuildContext context,
     String title,
     IconData icon,
-    VoidCallback onTap,
-  ) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      trailing: const Icon(Icons.chevron_right),
+    VoidCallback onTap, {
+    required Color color,
+  }) {
+    return GestureDetector(
       onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: color.withAlpha(30),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        child: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              padding: const EdgeInsets.all(12),
+              child: Icon(icon, color: Colors.black, size: 26),
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 17,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.black),
+          ],
+        ),
+      ),
     );
   }
 }

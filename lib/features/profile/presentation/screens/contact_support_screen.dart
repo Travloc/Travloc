@@ -27,148 +27,258 @@ class _ContactSupportScreenState extends State<ContactSupportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Contact Support')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: const Color(0xFF181A20),
+      body: SafeArea(
+        child: Stack(
           children: [
-            // Support Options
-            _buildSection(context, 'Support Options', [
-              _buildSupportOption(
-                context,
-                'Live Chat',
-                Icons.chat,
-                'Chat with our support team',
-                () async {
-                  // Navigate to chat screen
-                  if (context.mounted) {
-                    Navigator.pushNamed(context, '/chat');
-                  }
-                },
-              ),
-              _buildSupportOption(
-                context,
-                'Email Support',
-                Icons.email,
-                'support@travloc.com',
-                () async {
-                  final Uri emailLaunchUri = Uri(
-                    scheme: 'mailto',
-                    path: 'support@travloc.com',
-                    queryParameters: {'subject': 'Travloc Support Request'},
-                  );
-                  if (await canLaunchUrl(emailLaunchUri)) {
-                    await launchUrl(emailLaunchUri);
-                  } else {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Could not launch email client'),
+            ListView(
+              padding: const EdgeInsets.fromLTRB(6, 12, 6, 0),
+              children: [
+                // Custom header
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha((0.08 * 255).toInt()),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 12,
+                  ),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.black),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Contact Support',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: Colors.black,
                         ),
-                      );
-                    }
-                  }
-                },
-              ),
-              _buildSupportOption(
-                context,
-                'Phone Support',
-                Icons.phone,
-                '+1 (555) 123-4567',
-                () async {
-                  final Uri phoneLaunchUri = Uri(
-                    scheme: 'tel',
-                    path: '+15551234567',
-                  );
-                  if (await canLaunchUrl(phoneLaunchUri)) {
-                    await launchUrl(phoneLaunchUri);
-                  } else {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Could not launch phone dialer'),
-                        ),
-                      );
-                    }
-                  }
-                },
-              ),
-            ]),
-            const SizedBox(height: 24),
-            // Contact Form
-            _buildSection(context, 'Send us a Message', [
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _subjectController,
-                      decoration: const InputDecoration(
-                        labelText: 'Subject',
-                        border: OutlineInputBorder(),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a subject';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _messageController,
-                      maxLines: 5,
-                      decoration: const InputDecoration(
-                        labelText: 'Message',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a message';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          if (_formKey.currentState!.validate()) {
-                            try {
-                              // Send message to support
-                              await _sendSupportMessage(
-                                _subjectController.text,
-                                _messageController.text,
-                              );
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Message sent successfully!'),
-                                  ),
-                                );
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Error sending message: $e'),
-                                  ),
-                                );
-                              }
-                            }
-                            _subjectController.clear();
-                            _messageController.clear();
-                          }
-                        },
-                        child: const Text('Send Message'),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                // Support Options
+                _buildSection(context, 'Support Options', [
+                  _supportOptionCard(
+                    context,
+                    title: 'Live Chat',
+                    icon: Icons.chat,
+                    subtitle: 'Chat with our support team',
+                    color: const Color(0xFFB7A6FF),
+                    onTap: () async {
+                      if (context.mounted) {
+                        Navigator.pushNamed(context, '/chat');
+                      }
+                    },
+                  ),
+                  _supportOptionCard(
+                    context,
+                    title: 'Email Support',
+                    icon: Icons.email,
+                    subtitle: 'support@travloc.com',
+                    color: const Color(0xFFBFFF2A),
+                    onTap: () async {
+                      final Uri emailLaunchUri = Uri(
+                        scheme: 'mailto',
+                        path: 'support@travloc.com',
+                        queryParameters: {'subject': 'Travloc Support Request'},
+                      );
+                      if (await canLaunchUrl(emailLaunchUri)) {
+                        await launchUrl(emailLaunchUri);
+                      } else {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Could not launch email client'),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                  _supportOptionCard(
+                    context,
+                    title: 'Phone Support',
+                    icon: Icons.phone,
+                    subtitle: '+1 (555) 123-4567',
+                    color: const Color(0xFFFFD6E0),
+                    onTap: () async {
+                      final Uri phoneLaunchUri = Uri(
+                        scheme: 'tel',
+                        path: '+15551234567',
+                      );
+                      if (await canLaunchUrl(phoneLaunchUri)) {
+                        await launchUrl(phoneLaunchUri);
+                      } else {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Could not launch phone dialer'),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                ]),
+                const SizedBox(height: 24),
+                // Contact Form
+                _buildSection(context, 'Send us a Message', [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha((0.08 * 255).toInt()),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 20,
+                      horizontal: 18,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: _subjectController,
+                            decoration: const InputDecoration(
+                              labelText: 'Subject',
+                              filled: true,
+                              fillColor: Color(0xFFF7F8FA),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(14),
+                                ),
+                                borderSide: BorderSide.none,
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(14),
+                                ),
+                                borderSide: BorderSide(
+                                  color: Color(0xFFB7A6FF),
+                                  width: 2,
+                                ),
+                              ),
+                              labelStyle: TextStyle(color: Colors.black87),
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 16,
+                                horizontal: 16,
+                              ),
+                            ),
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a subject';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _messageController,
+                            maxLines: 5,
+                            decoration: const InputDecoration(
+                              labelText: 'Message',
+                              filled: true,
+                              fillColor: Color(0xFFF7F8FA),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(14),
+                                ),
+                                borderSide: BorderSide.none,
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(14),
+                                ),
+                                borderSide: BorderSide(
+                                  color: Color(0xFFB7A6FF),
+                                  width: 2,
+                                ),
+                              ),
+                              labelStyle: TextStyle(color: Colors.black87),
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 16,
+                                horizontal: 16,
+                              ),
+                            ),
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a message';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(
+                            height: 80,
+                          ), // For floating button space
+                        ],
+                      ),
+                    ),
+                  ),
+                ]),
+              ],
+            ),
+            // Floating Send Button
+            Positioned(
+              bottom: 24,
+              right: 24,
+              child: FloatingActionButton(
+                backgroundColor: const Color(0xFFB7A6FF),
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    try {
+                      await _sendSupportMessage(
+                        _subjectController.text,
+                        _messageController.text,
+                      );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Message sent successfully!'),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error sending message: $e')),
+                        );
+                      }
+                    }
+                    _subjectController.clear();
+                    _messageController.clear();
+                  }
+                },
+                child: const Icon(Icons.send, color: Colors.black),
               ),
-            ]),
+            ),
           ],
         ),
       ),
@@ -183,33 +293,80 @@ class _ContactSupportScreenState extends State<ContactSupportScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: Theme.of(context).colorScheme.primary,
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 10, top: 2),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Colors.white,
+            ),
           ),
         ),
-        const SizedBox(height: 16),
         ...children,
       ],
     );
   }
 
-  Widget _buildSupportOption(
-    BuildContext context,
-    String title,
-    IconData icon,
-    String subtitle,
-    VoidCallback onTap,
-  ) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
+  Widget _supportOptionCard(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: color.withAlpha(30),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+        child: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              padding: const EdgeInsets.all(10),
+              child: Icon(icon, color: Colors.black, size: 22),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.black, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.black),
+          ],
+        ),
       ),
     );
   }

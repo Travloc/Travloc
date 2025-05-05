@@ -19,6 +19,22 @@ class AppLayout extends ConsumerStatefulWidget {
 }
 
 class _AppLayoutState extends ConsumerState<AppLayout> {
+  late final PageController _pageController;
+  static const int _pageCount = 5;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialIndex = ref.read(navigationProvider);
+    _pageController = PageController(initialPage: initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentIndex = ref.watch(navigationProvider);
@@ -42,11 +58,11 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
     Widget getScreen(int index) {
       switch (index) {
         case 0:
-          return const ExploreScreen();
-        case 1:
           return const TripPlannerScreen();
-        case 2:
+        case 1:
           return const GuidesScreen();
+        case 2:
+          return const ExploreScreen();
         case 3:
           return const MessagesScreen();
         case 4:
@@ -57,10 +73,29 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
     }
 
     return Scaffold(
-      body: SafeArea(child: getScreen(currentIndex)),
+      body: SafeArea(
+        child: PageView.builder(
+          controller: _pageController,
+          itemCount: _pageCount,
+          physics: const BouncingScrollPhysics(),
+          onPageChanged: (index) {
+            if (index != currentIndex) {
+              ref.read(navigationProvider.notifier).state = index;
+            }
+          },
+          itemBuilder: (context, index) => getScreen(index),
+        ),
+      ),
       bottomNavigationBar: TravlocBottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (index) {
+          if (_pageController.hasClients) {
+            _pageController.animateToPage(
+              index,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.ease,
+            );
+          }
           ref.read(navigationProvider.notifier).state = index;
         },
       ),

@@ -1,17 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/shared_filter_widgets.dart';
+
+final travelBuddiesFiltersProvider =
+    StateNotifierProvider<TravelBuddiesFilters, Map<String, dynamic>>((ref) {
+      return TravelBuddiesFilters();
+    });
+
+class TravelBuddiesFilters extends StateNotifier<Map<String, dynamic>> {
+  TravelBuddiesFilters()
+    : super({
+        'searchQuery': '',
+        'travelDates': null, // Placeholder for date range or similar
+        'interests': <String>{},
+        'languages': <String>{},
+      });
+
+  void updateSearchQuery(String query) {
+    state = {...state, 'searchQuery': query};
+  }
+
+  // Add methods for updating travelDates, interests, languages as needed
+}
 
 class TravelBuddiesScreen extends ConsumerStatefulWidget {
   const TravelBuddiesScreen({super.key});
 
   @override
-  ConsumerState<TravelBuddiesScreen> createState() => _TravelBuddiesScreenState();
+  ConsumerState<TravelBuddiesScreen> createState() =>
+      _TravelBuddiesScreenState();
 }
 
 class _TravelBuddiesScreenState extends ConsumerState<TravelBuddiesScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedCategory = 'All';
-  final List<String> _categories = ['All', 'Adventure', 'Cultural', 'Food', 'Nature'];
   final List<bool> _favorites = List.generate(10, (_) => false);
 
   @override
@@ -22,164 +43,202 @@ class _TravelBuddiesScreenState extends ConsumerState<TravelBuddiesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Travel Buddies'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () => _showFilterDialog(context),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search travel buddies...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: const Color(0xFF181A20),
+          body: Column(
+            children: [
+              // Search Bar
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: SharedSearchBar(
+                  controller: _searchController,
+                  hintText: 'Search travel buddies...',
+                  onChanged: (value) {
+                    ref
+                        .read(travelBuddiesFiltersProvider.notifier)
+                        .updateSearchQuery(value);
+                  },
+                  backgroundColor: Colors.white,
+                  iconColor: Colors.black54,
+                  borderRadius: 16,
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
               ),
-            ),
+              // Buddy List
+              Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.zero,
+                  itemCount: 10, // Placeholder count
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
+                      child: _buildBuddyCard(context, index),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-          // Category Filter
-          SizedBox(
-            height: 50,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _categories.length,
-              itemBuilder: (context, index) {
-                final category = _categories[index];
-                final isSelected = category == _selectedCategory;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(category),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() {
-                          _selectedCategory = category;
-                        });
-                      }
-                    },
-                  ),
-                );
-              },
-            ),
+        ),
+        // Floating Filter Button
+        Positioned(
+          bottom: 70, // Adjust as needed to be above the selection tab
+          right: 24,
+          child: FloatingActionButton(
+            backgroundColor: const Color(0xFFB7A6FF),
+            foregroundColor: Colors.black,
+            onPressed: () => _showFilterDialog(context),
+            child: const Icon(Icons.filter_list),
           ),
-          // Buddy List
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: 10, // Placeholder count
-              itemBuilder: (context, index) {
-                return _buildBuddyCard(context, index);
-              },
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildBuddyCard(BuildContext context, int index) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 0.5, horizontal: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3EDFF), // pastel purple
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(10),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: InkWell(
+        borderRadius: BorderRadius.circular(8),
         onTap: () => Navigator.pushNamed(context, '/buddies/${index + 1}'),
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    child: const Icon(
-                      Icons.person,
-                      size: 30,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              // Avatar
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: const Color(0xFFD1C4E9),
+                child: const Text('🧑‍🤝‍🧑', style: TextStyle(fontSize: 24)),
+              ),
+              const SizedBox(width: 14),
+              // Main Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          'Travel Buddy Name',
-                          style: Theme.of(context).textTheme.titleMedium,
+                        Expanded(
+                          child: Text(
+                            'Travel Buddy Name',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.black,
+                              letterSpacing: 0.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.location_on,
-                              size: 16,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Barcelona, Spain',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: Icon(
+                            _favorites[index]
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color:
+                                _favorites[index] ? Colors.red : Colors.black26,
+                            size: 22,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _favorites[index] = !_favorites[index];
+                            });
+                          },
                         ),
                       ],
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      _favorites[index] ? Icons.favorite : Icons.favorite_border,
-                      color: _favorites[index] ? Colors.red : null,
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on,
+                          size: 15,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          'Barcelona, Spain',
+                          style: TextStyle(
+                            color: Colors.grey[700],
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _favorites[index] = !_favorites[index];
-                      });
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Interested in adventure tours and cultural experiences. Looking for travel buddies for upcoming trips.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_today,
-                        size: 16,
-                        color: Colors.grey,
+                    const SizedBox(height: 6),
+                    Text(
+                      'Interested in adventure tours and cultural experiences.',
+                      style: TextStyle(
+                        color: Colors.grey[800],
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Available: June 2024',
-                        style: Theme.of(context).textTheme.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.calendar_today,
+                          size: 13,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          'Available: June 2024',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Connect button
+              Padding(
+                padding: const EdgeInsets.only(left: 10, top: 2),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(70, 32),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 0,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed:
+                      () => Navigator.pushNamed(
+                        context,
+                        '/buddies/${index + 1}/connect',
                       ),
-                    ],
-                  ),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pushNamed(context, '/buddies/${index + 1}/connect'),
-                    child: const Text('Connect'),
-                  ),
-                ],
+                  child: const Text('Connect', style: TextStyle(fontSize: 14)),
+                ),
               ),
             ],
           ),
@@ -191,49 +250,34 @@ class _TravelBuddiesScreenState extends ConsumerState<TravelBuddiesScreen> {
   void _showFilterDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Filter Buddies'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Add filter options here
-            ListTile(
-              title: const Text('Travel Dates'),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                // Implement date filter
-              },
-            ),
-            ListTile(
-              title: const Text('Interests'),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                // Implement interests filter
-              },
-            ),
-            ListTile(
-              title: const Text('Languages'),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                // Implement languages filter
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder:
+          (context) => SharedFilterDialog(
+            title: 'Filter Buddies',
+            filterOptions: [
+              ListTile(
+                title: const Text('Travel Dates'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  // Implement date filter
+                },
+              ),
+              ListTile(
+                title: const Text('Interests'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  // Implement interests filter
+                },
+              ),
+              ListTile(
+                title: const Text('Languages'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  // Implement languages filter
+                },
+              ),
+            ],
+            onApply: () => Navigator.pop(context),
           ),
-          TextButton(
-            onPressed: () {
-              // Apply filters
-              Navigator.pop(context);
-            },
-            child: const Text('Apply'),
-          ),
-        ],
-      ),
     );
   }
-} 
+}

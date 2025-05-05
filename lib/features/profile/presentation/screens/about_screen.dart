@@ -42,88 +42,211 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('About')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const Center(
-            child: CircleAvatar(
-              radius: 50,
-              child: Icon(Icons.travel_explore, size: 50),
+      backgroundColor: const Color(0xFF181A20),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(6, 12, 6, 0),
+          children: [
+            // Custom header
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha((0.08 * 255).toInt()),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+              margin: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.info_outline,
+                    color: Color(0xFFB7A6FF),
+                    size: 28,
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'About Travloc',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          const Center(
-            child: Text(
-              'Travloc',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            // App Info Card
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFB7A6FF),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha((0.08 * 255).toInt()),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 18),
+              margin: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                children: [
+                  const CircleAvatar(
+                    radius: 36,
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.travel_explore,
+                      size: 38,
+                      color: Color(0xFFB7A6FF),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Travloc',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Version ${_packageInfo?.version ?? '1.0.0'}',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Center(
-            child: Text(
-              'Version ${_packageInfo?.version ?? '1.0.0'}',
-              style: Theme.of(context).textTheme.bodyMedium,
+            // Description Card
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFD6E0),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha((0.08 * 255).toInt()),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 18),
+              margin: const EdgeInsets.only(bottom: 12),
+              child: const Text(
+                'Travloc is your ultimate travel companion app, helping you plan, organize, and enjoy your trips with ease.',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
-          ),
-          const SizedBox(height: 32),
-          _buildSection(context, 'About Travloc', [
-            const Text(
-              'Travloc is your ultimate travel companion app, helping you plan, organize, and enjoy your trips with ease.',
-            ),
-          ]),
-          const SizedBox(height: 24),
-          _buildSection(context, 'Contact Us', [
-            _buildContactItem(
+            // Contact Section
+            _buildSectionCard(
               context,
-              'Email',
-              'support@travloc.com',
-              Icons.email,
-              () => _launchUrl('mailto:support@travloc.com'),
+              title: 'Contact Us',
+              color: const Color(0xFFBFFF2A),
+              children: [
+                _buildContactItem(
+                  context,
+                  'Email',
+                  'support@travloc.com',
+                  Icons.email,
+                  () => _launchUrl('mailto:support@travloc.com'),
+                ),
+                _buildContactItem(
+                  context,
+                  'Website',
+                  'www.travloc.com',
+                  Icons.language,
+                  () => _launchUrl('https://www.travloc.com'),
+                ),
+              ],
             ),
-            _buildContactItem(
+            // Legal Section
+            _buildSectionCard(
               context,
-              'Website',
-              'www.travloc.com',
-              Icons.language,
-              () => _launchUrl('https://www.travloc.com'),
+              title: 'Legal',
+              color: const Color(0xFFB7A6FF),
+              children: [
+                _buildLegalItem(
+                  context,
+                  'Privacy Policy',
+                  () => _launchUrl('https://www.travloc.com/privacy'),
+                ),
+                _buildLegalItem(
+                  context,
+                  'Terms of Service',
+                  () => _launchUrl('https://www.travloc.com/terms'),
+                ),
+                _buildLegalItem(
+                  context,
+                  'Open Source Licenses',
+                  () => showLicensePage(
+                    context: context,
+                    applicationName: 'Travloc',
+                  ),
+                ),
+              ],
             ),
-          ]),
-          const SizedBox(height: 24),
-          _buildSection(context, 'Legal', [
-            ListTile(
-              title: const Text('Privacy Policy'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _launchUrl('https://www.travloc.com/privacy'),
-            ),
-            ListTile(
-              title: const Text('Terms of Service'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _launchUrl('https://www.travloc.com/terms'),
-            ),
-          ]),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSection(
-    BuildContext context,
-    String title,
-    List<Widget> children,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: Theme.of(context).colorScheme.primary,
+  Widget _buildSectionCard(
+    BuildContext context, {
+    required String title,
+    required Color color,
+    required List<Widget> children,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withAlpha(30),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-        ),
-        const SizedBox(height: 16),
-        ...children,
-      ],
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 17,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ...children,
+        ],
+      ),
     );
   }
 
@@ -134,11 +257,82 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     IconData icon,
     VoidCallback onTap,
   ) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(subtitle),
+    return GestureDetector(
       onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        child: Row(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFF7F8FA),
+                shape: BoxShape.circle,
+              ),
+              padding: const EdgeInsets.all(8),
+              child: Icon(icon, color: Colors.black, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 15,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.black, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.black),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLegalItem(
+    BuildContext context,
+    String title,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.black),
+          ],
+        ),
+      ),
     );
   }
 }
