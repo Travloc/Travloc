@@ -13,6 +13,7 @@ class TravlocBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isSelected(int idx) => currentIndex == idx;
+    const purple = Color(0xFFB7A6FF);
     return SafeArea(
       top: false,
       child: Stack(
@@ -43,11 +44,13 @@ class TravlocBottomNavigationBar extends StatelessWidget {
                         icon: Icons.calendar_today_outlined,
                         selected: isSelected(1),
                         onTap: () => onTap(1),
+                        highlightColor: purple,
                       ),
                       _NavBarIcon(
                         icon: Icons.menu_book_outlined,
                         selected: isSelected(2),
                         onTap: () => onTap(2),
+                        highlightColor: purple,
                       ),
                     ],
                   ),
@@ -61,11 +64,13 @@ class TravlocBottomNavigationBar extends StatelessWidget {
                         icon: Icons.chat_bubble_outline,
                         selected: isSelected(3),
                         onTap: () => onTap(3),
+                        highlightColor: purple,
                       ),
                       _NavBarIcon(
                         icon: Icons.settings_outlined,
                         selected: isSelected(4),
                         onTap: () => onTap(4),
+                        highlightColor: purple,
                       ),
                     ],
                   ),
@@ -77,7 +82,7 @@ class TravlocBottomNavigationBar extends StatelessWidget {
             bottom: 20,
             child: Container(
               decoration: BoxDecoration(
-                color: isSelected(0) ? Colors.amber[400] : Colors.white,
+                color: isSelected(0) ? purple : Colors.white,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
@@ -91,10 +96,7 @@ class TravlocBottomNavigationBar extends StatelessWidget {
                 icon: Icon(
                   Icons.explore,
                   size: 32,
-                  color:
-                      isSelected(0)
-                          ? const Color(0xFF181A20)
-                          : Colors.amber[700],
+                  color: isSelected(0) ? const Color(0xFF181A20) : purple,
                 ),
                 onPressed: () => onTap(0),
                 padding: const EdgeInsets.all(12),
@@ -112,11 +114,13 @@ class _NavBarIcon extends StatelessWidget {
   final IconData icon;
   final bool selected;
   final VoidCallback onTap;
+  final Color highlightColor;
 
   const _NavBarIcon({
     required this.icon,
     required this.selected,
     required this.onTap,
+    required this.highlightColor,
   });
 
   @override
@@ -132,14 +136,14 @@ class _NavBarIcon extends StatelessWidget {
           decoration:
               selected
                   ? BoxDecoration(
-                    color: Colors.white.withAlpha((0.08 * 255).toInt()),
+                    color: highlightColor.withAlpha((0.18 * 255).toInt()),
                     shape: BoxShape.circle,
                   )
                   : null,
           child: Icon(
             icon,
             size: 26,
-            color: selected ? Colors.amber[400] : Colors.white70,
+            color: selected ? highlightColor : Colors.white70,
           ),
         ),
       ),
