@@ -7,8 +7,13 @@ import 'package:travloc/features/explore/domain/models/attraction_list.dart';
 import 'package:travloc/features/explore/domain/services/voice_recognition_service.dart';
 import 'package:travloc/features/explore/domain/services/ai_service.dart';
 import 'package:travloc/features/explore/domain/services/api_service.dart';
-import 'package:travloc/core/widgets/ai_manual_toggle.dart';
 import 'package:logger/logger.dart';
+import 'package:travloc/core/widgets/ai_manual_toggle.dart';
+import 'package:travloc/features/explore/presentation/widgets/trip_planner/location_search.dart';
+import 'package:travloc/features/explore/presentation/widgets/trip_planner/interest_selection.dart';
+import 'package:travloc/features/explore/presentation/widgets/trip_planner/budget_selection.dart';
+import 'package:travloc/features/explore/presentation/widgets/trip_planner/confirm_button.dart';
+import 'package:travloc/features/explore/presentation/widgets/trip_planner/group_size_selection.dart';
 
 // Map controller to handle map operations
 class MapController {
@@ -70,9 +75,36 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
   late final AnimationController _expandController;
   late final Animation<double> _expandAnim;
 
-  static const double _tripCardMinHeight = 72 + 32; // 72 (child) + 16*2 (vertical padding)
+  // Trip planning form state
+  final List<String> _selectedLocations = [];
+  final List<String> _selectedInterests = [];
+  String _selectedBudget = 'balanced';
+  final TextEditingController _locationController = TextEditingController();
+  int _adultCount = 1;
+  int _childrenCount = 0;
+
+  static const double _tripCardMinHeight =
+      72 + 32; // 72 (child) + 16*2 (vertical padding)
   static const double _gap = 6; // gap between cards
   double? _mapMaxHeight;
+
+  final List<Map<String, dynamic>> _locations = [];
+  bool _showLocationsList = true;
+
+  // Memoize commonly used values
+  static const _defaultPadding = EdgeInsets.all(16);
+  static const _defaultSizedBox = SizedBox(height: 16);
+  static const _defaultIconColor = Color(0xFF2196F3);
+
+  // Cache the date range picker theme
+  ThemeData get _dateRangePickerTheme => Theme.of(context).copyWith(
+    colorScheme: ColorScheme.light(
+      primary: Color(0xFF2196F3),
+      onPrimary: Colors.white,
+      surface: Colors.white,
+      onSurface: Colors.black,
+    ),
+  );
 
   @override
   void initState() {
@@ -93,6 +125,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
 
   @override
   void dispose() {
+    _locationController.dispose();
     _expandController.dispose();
     super.dispose();
   }
@@ -186,19 +219,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
     ).showSnackBar(const SnackBar(content: Text('Navigating to events...')));
   }
 
-  void _handleVoiceInput() {
-    if (!mounted) return;
-    setState(() {
-      _isListening = !_isListening;
-    });
-
-    if (_isListening) {
-      _startVoiceRecognition();
-    } else {
-      _stopVoiceRecognition();
-    }
-  }
-
   Future<void> _startVoiceRecognition() async {
     if (!mounted) return;
     try {
@@ -281,13 +301,74 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
     _logger.i('Mode: ${voiceMode ? 'Voice' : 'Manual'}');
   }
 
+  Future<void> _addLocation(String location) async {
+    if (location.isEmpty) return;
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder:
+          (context, child) => Theme(data: _dateRangePickerTheme, child: child!),
+    );
+    if (picked != null) {
+      setState(() {
+        _locations.add({
+          'name': location,
+          'start': picked.start,
+          'end': picked.end,
+        });
+        _locationController.clear();
+      });
+    }
+  }
+
+  void _removeLocation(int index) {
+    setState(() {
+      _locations.removeAt(index);
+    });
+  }
+
+  Future<void> _editLocationDates(int index) async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDateRange: DateTimeRange(
+        start: _locations[index]['start'],
+        end: _locations[index]['end'],
+      ),
+      builder:
+          (context, child) => Theme(data: _dateRangePickerTheme, child: child!),
+    );
+    if (picked != null) {
+      setState(() {
+        _locations[index]['start'] = picked.start;
+        _locations[index]['end'] = picked.end;
+      });
+    }
+  }
+
+  void _reorderLocations(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) newIndex--;
+      final item = _locations.removeAt(oldIndex);
+      _locations.insert(newIndex, item);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate available height for map card
         final double eventCardHeight = 110; // estimate, or measure if needed
-        final double availableHeight = constraints.maxHeight - _tripCardMinHeight - _gap - eventCardHeight - _gap - 32; // 32 for SafeArea and padding fudge
+        final double availableHeight =
+            constraints.maxHeight -
+            _tripCardMinHeight -
+            _gap -
+            eventCardHeight -
+            _gap -
+            32; // 32 for SafeArea and padding fudge
         _mapMaxHeight = availableHeight > 0 ? availableHeight : 200;
         return Scaffold(
           backgroundColor: const Color(0xFF181A20),
@@ -295,68 +376,32 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
             child: AnimatedBuilder(
               animation: _expandAnim,
               builder: (context, child) {
-                final double tripCardHeight = _tripCardMinHeight + (_mapMaxHeight! * _expandAnim.value);
-                final double mapCardHeight = _mapMaxHeight! * (1 - _expandAnim.value);
+                final double tripCardHeight =
+                    _tripCardMinHeight + (_mapMaxHeight! * _expandAnim.value);
+                final double mapCardHeight =
+                    _mapMaxHeight! * (1 - _expandAnim.value);
                 return Column(
                   children: [
                     // AI Trip Planner Card (expanding)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(6, 12, 6, 0),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.linear,
+                      child: TripPlannerCard(
                         height: tripCardHeight,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFBFFF2A),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha((0.08 * 255).toInt()),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                        child: Stack(
+                        isVoiceMode: _isVoiceMode,
+                        isListening: _isListening,
+                        onMicTap:
+                            _isListening
+                                ? _stopVoiceRecognition
+                                : _startVoiceRecognition,
+                        onToggleMode: _onToggleMode,
+                        child: Column(
                           children: [
-                            // The expanding background
-                            Positioned.fill(child: SizedBox()),
-                            // The fixed mic and toggle row
-                            Align(
-                              alignment: Alignment.topCenter,
-                              child: SizedBox(
-                                height: _tripCardMinHeight,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    if (_isVoiceMode)
-                                      Material(
-                                        color: Colors.white,
-                                        shape: const CircleBorder(),
-                                        elevation: 2,
-                                        child: InkWell(
-                                          customBorder: const CircleBorder(),
-                                          onTap: _handleVoiceInput,
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(14),
-                                            child: Icon(
-                                              Icons.mic,
-                                              color: Colors.teal[400],
-                                              size: 36,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    Spacer(flex: 1),
-                                    VoiceManualToggle(
-                                      isVoiceMode: _isVoiceMode,
-                                      onChanged: _onToggleMode,
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            // Content based on mode
+                            Expanded(
+                              child:
+                                  _isVoiceMode
+                                      ? _buildVoiceMode()
+                                      : _buildManualMode(),
                             ),
                           ],
                         ),
@@ -365,177 +410,25 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
                     SizedBox(height: _gap),
                     // Map Card (collapsing)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.linear,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 0,
+                      ),
+                      child: MapCard(
                         height: mapCardHeight,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withAlpha((0.08 * 255).toInt()),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Stack(
-                            children: [
-                              Positioned.fill(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: const Center(
-                                    child: Text(
-                                      'Map View',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.black54,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                right: 18,
-                                bottom: 18,
-                                child: Row(
-                                  children: [
-                                    Material(
-                                      color: const Color(0xFFD6E6FF),
-                                      shape: const CircleBorder(),
-                                      elevation: 1,
-                                      child: IconButton(
-                                        icon: Icon(
-                                          Icons.my_location,
-                                          color: Colors.blueAccent,
-                                          size: 22,
-                                        ),
-                                        onPressed: () => _handleLocationButtonPress(context),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Material(
-                                      color: const Color(0xFFD6E6FF),
-                                      shape: const CircleBorder(),
-                                      elevation: 1,
-                                      child: IconButton(
-                                        icon: Transform.rotate(
-                                          angle: _compassHeading * (3.141592653589793 / 180),
-                                          child: const Icon(
-                                            Icons.explore,
-                                            color: Colors.blueAccent,
-                                            size: 22,
-                                          ),
-                                        ),
-                                        onPressed: _resetMapOrientation,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        compassHeading: _compassHeading,
+                        onLocation: () => _handleLocationButtonPress(context),
+                        onResetOrientation: _resetMapOrientation,
                       ),
                     ),
                     SizedBox(height: _gap),
                     // Event Card (unchanged)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFB7A6FF),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha((0.08 * 255).toInt()),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.only(
-                          top: 14,
-                          left: 16,
-                          right: 16,
-                          bottom: 40, // Increased bottom padding
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.event,
-                                      color: Colors.black,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'Next Event',
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFFBFFF2A),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: GestureDetector(
-                                    onTap: _navigateToEvents,
-                                    child: const Text(
-                                      'View All',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 13,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              _nextEventTime != null
-                                  ? 'Upcoming event in ${_nextEventTime!.difference(DateTime.now()).inMinutes} minutes'
-                                  : 'No upcoming events',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.black,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            LinearProgressIndicator(
-                              value: _eventProgress,
-                              backgroundColor: Colors.white,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.amber[700]!,
-                              ),
-                              minHeight: 5,
-                            ),
-                          ],
-                        ),
+                      child: EventCard(
+                        nextEventTime: _nextEventTime,
+                        eventProgress: _eventProgress,
+                        onViewAll: _navigateToEvents,
                       ),
                     ),
                   ],
@@ -545,6 +438,519 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildVoiceMode() {
+    // Only the header mic is shown. No duplicate mic or animation here.
+    return Container(
+      height: 72, // Fixed height for voice mode
+      constraints: const BoxConstraints(minHeight: 72, maxHeight: 72),
+    );
+  }
+
+  Widget _buildManualMode() {
+    return SingleChildScrollView(
+      padding: _defaultPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          LocationSearch(
+            locationController: _locationController,
+            locations: _locations,
+            showLocationsList: _showLocationsList,
+            onAddLocation: _addLocation,
+            onRemoveLocation: _removeLocation,
+            onEditLocationDates: _editLocationDates,
+            onReorderLocations: _reorderLocations,
+            onToggleLocationsList:
+                (value) => setState(() => _showLocationsList = value),
+          ),
+          _defaultSizedBox,
+          GroupSizeSelection(
+            adultCount: _adultCount,
+            childrenCount: _childrenCount,
+            onAdultCountChanged: (count) => setState(() => _adultCount = count),
+            onChildrenCountChanged:
+                (count) => setState(() => _childrenCount = count),
+          ),
+          _defaultSizedBox,
+          InterestSelection(
+            selectedInterests: _selectedInterests,
+            onInterestSelected: (interest) {
+              setState(() {
+                if (_selectedInterests.contains(interest)) {
+                  _selectedInterests.remove(interest);
+                } else {
+                  _selectedInterests.add(interest);
+                }
+              });
+            },
+            onShowAdditionalInterests: _showAdditionalInterests,
+          ),
+          _defaultSizedBox,
+          BudgetSelection(
+            selectedBudget: _selectedBudget,
+            onBudgetChanged: (value) => setState(() => _selectedBudget = value),
+          ),
+          const SizedBox(height: 24),
+          ConfirmButton(
+            selectedLocations: _selectedLocations,
+            selectedInterests: _selectedInterests,
+            budgetCategory: _selectedBudget,
+            adultCount: _adultCount,
+            childrenCount: _childrenCount,
+            onConfirm:
+                (tripPlan) =>
+                    _navigationService.navigateToTripPlanner(context, tripPlan),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAdditionalInterests(
+    BuildContext context,
+    List<Map<String, dynamic>> additionalInterests,
+  ) {
+    // Pass setState from parent to modal
+    final parentSetState = setState;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder:
+          (context) => StatefulBuilder(
+            builder:
+                (context, setState) => DraggableScrollableSheet(
+                  initialChildSize: 0.7,
+                  minChildSize: 0.5,
+                  maxChildSize: 0.9,
+                  builder:
+                      (context, scrollController) => Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.only(top: 8),
+                              width: 40,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            Padding(
+                              padding: _defaultPadding,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        'More Interests',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      if (_selectedInterests.isNotEmpty) ...[
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF2196F3),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            '${_selectedInterests.length} selected',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      if (_selectedInterests.isNotEmpty)
+                                        TextButton(
+                                          onPressed: () {
+                                            setState(
+                                              () => _selectedInterests.clear(),
+                                            );
+                                            parentSetState(() {});
+                                          },
+                                          child: const Text(
+                                            'Clear',
+                                            style: TextStyle(
+                                              color: Color(0xFF2196F3),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () => Navigator.pop(context),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: GridView.builder(
+                                controller: scrollController,
+                                padding: _defaultPadding,
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 4,
+                                      childAspectRatio: 1.0,
+                                      crossAxisSpacing: 8,
+                                      mainAxisSpacing: 8,
+                                    ),
+                                itemCount: additionalInterests.length,
+                                itemBuilder: (context, index) {
+                                  final interest = additionalInterests[index];
+                                  final isSelected = _selectedInterests
+                                      .contains(interest['name']);
+
+                                  return Material(
+                                    color:
+                                        isSelected
+                                            ? _defaultIconColor
+                                            : Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          if (isSelected) {
+                                            _selectedInterests.remove(
+                                              interest['name'],
+                                            );
+                                          } else {
+                                            _selectedInterests.add(
+                                              interest['name']!,
+                                            );
+                                          }
+                                        });
+                                        parentSetState(() {});
+                                      },
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color:
+                                                isSelected
+                                                    ? _defaultIconColor
+                                                    : Colors.grey.shade300,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              interest['icon'] as IconData,
+                                              color:
+                                                  isSelected
+                                                      ? Colors.white
+                                                      : Colors.black87,
+                                              size: 24,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              interest['name']!,
+                                              style: TextStyle(
+                                                color:
+                                                    isSelected
+                                                        ? Colors.white
+                                                        : Colors.black87,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                ),
+          ),
+    );
+  }
+}
+
+// Extract EventCard widget
+class EventCard extends StatelessWidget {
+  final DateTime? nextEventTime;
+  final double eventProgress;
+  final VoidCallback onViewAll;
+  const EventCard({
+    super.key,
+    required this.nextEventTime,
+    required this.eventProgress,
+    required this.onViewAll,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFB7A6FF),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      padding: const EdgeInsets.only(top: 14, left: 16, right: 16, bottom: 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.event, color: Colors.black, size: 20),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'Next Event',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFBFFF2A),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: GestureDetector(
+                  onTap: onViewAll,
+                  child: const Text(
+                    'View All',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            nextEventTime != null
+                ? 'Upcoming event in ${nextEventTime!.difference(DateTime.now()).inMinutes} minutes'
+                : 'No upcoming events',
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.black,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: eventProgress,
+            backgroundColor: Colors.white,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+            minHeight: 5,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Extract MapCard widget
+class MapCard extends StatelessWidget {
+  final double height;
+  final double compassHeading;
+  final VoidCallback onLocation;
+  final VoidCallback onResetOrientation;
+  const MapCard({
+    super.key,
+    required this.height,
+    required this.compassHeading,
+    required this.onLocation,
+    required this.onResetOrientation,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.linear,
+      height: height,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Map View',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              right: 18,
+              bottom: 18,
+              child: Row(
+                children: [
+                  Material(
+                    color: const Color(0xFFD6E6FF),
+                    shape: const CircleBorder(),
+                    elevation: 1,
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.my_location,
+                        color: Colors.blueAccent,
+                        size: 22,
+                      ),
+                      onPressed: onLocation,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Material(
+                    color: const Color(0xFFD6E6FF),
+                    shape: const CircleBorder(),
+                    elevation: 1,
+                    child: IconButton(
+                      icon: Transform.rotate(
+                        angle: compassHeading * (3.141592653589793 / 180),
+                        child: const Icon(
+                          Icons.explore,
+                          color: Colors.blueAccent,
+                          size: 22,
+                        ),
+                      ),
+                      onPressed: onResetOrientation,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Extract TripPlannerCard widget (AI Trip Planner Card)
+class TripPlannerCard extends StatelessWidget {
+  final double height;
+  final bool isVoiceMode;
+  final bool isListening;
+  final VoidCallback onMicTap;
+  final ValueChanged<bool> onToggleMode;
+  final Widget child;
+  const TripPlannerCard({
+    super.key,
+    required this.height,
+    required this.isVoiceMode,
+    required this.isListening,
+    required this.onMicTap,
+    required this.onToggleMode,
+    required this.child,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.linear,
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xFFBFFF2A),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+            child: SizedBox(
+              height: 56,
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: MediaQuery.of(context).size.width / 4.2 - 28,
+                    top: 0,
+                    child: Material(
+                      color: Colors.white,
+                      shape: const CircleBorder(),
+                      elevation: 0,
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: onMicTap,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Icon(
+                            isListening ? Icons.mic : Icons.mic_none,
+                            size: 28,
+                            color: const Color(0xFFFF4081),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 14,
+                    child: VoiceManualToggle(
+                      isVoiceMode: isVoiceMode,
+                      onChanged: onToggleMode,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(child: child),
+        ],
+      ),
     );
   }
 }

@@ -21,13 +21,12 @@ class SegmentedTabControl extends StatelessWidget {
       height: 44,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF181A20), // black background
+          color: const Color(0xFF181A20),
           borderRadius: BorderRadius.circular(22),
           border: Border.all(color: Colors.white, width: 2),
         ),
         child: Stack(
           children: [
-            // Animated indicator
             LayoutBuilder(
               builder: (context, constraints) {
                 final tabWidth = constraints.maxWidth / tabs.length;

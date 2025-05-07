@@ -1,10 +1,35 @@
 & 'C:\Android\android-sdk\emulator\emulator.exe' -avd Pixel_6_API_35
+flutter run -d ZD2224LCDJ
 flutter run
 flutter clean
 flutter devices
 flutter run --verbose
 ./gradlew clean
 
+flutter clean
+cd android
+./gradlew clean
+cd ..
+flutter pub get
+flutter build apk --release
+
+flutter clean; flutter pub get; flutter run
+
+
+According to the documentation, you must include the Mapbox wordmark 
+
+
+
+
+
+
+there is a overflowing on default ai mode and manual mode colors are not showing things clearly 
+
+please look at the current implementation codes well and see how we can improve it for better visibility 
+
+add plus button in interest as well where user can select more inrest from the opened list keep the current inrerest setup as its opned list can be compact modern and stlysish 
+
+im saying current trip planner ui stays unchanged  we just need to add more interest plus button for selecting more options
 
 
 

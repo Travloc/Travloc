@@ -5,6 +5,8 @@ class TripPlan {
   final List<String> activities;
   final List<String> accommodations;
   final double estimatedCost;
+  final int adultCount;
+  final int childrenCount;
 
   TripPlan({
     required this.destination,
@@ -13,7 +15,11 @@ class TripPlan {
     required this.activities,
     required this.accommodations,
     required this.estimatedCost,
+    this.adultCount = 1,
+    this.childrenCount = 0,
   });
+
+  int get totalGroupSize => adultCount + childrenCount;
 
   factory TripPlan.fromJson(Map<String, dynamic> json) {
     return TripPlan(
@@ -26,4 +32,3 @@ class TripPlan {
     );
   }
 }
- 

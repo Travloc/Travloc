@@ -1,6 +1,6 @@
 buildscript {
     extra.apply {
-        set("ndkVersion", "25.1.8937393")
+        set("ndkVersion", "28.1.13356709")
         set("kotlinVersion", "2.1.20")
     }
     repositories {
@@ -8,15 +8,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.6.0")
+        classpath("com.android.tools.build:gradle:8.9.2")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.20")
-    }
-}
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
     }
 }
 

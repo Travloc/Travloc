@@ -8,15 +8,15 @@ plugins {
 android {
     namespace = "com.example.travloc"
     compileSdk = 35
-    ndkVersion = "25.1.8937393"
+    ndkVersion = "28.1.13356709"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_21.toString()
+        jvmTarget = "1.8"
     }
 
     defaultConfig {
@@ -24,10 +24,10 @@ android {
         applicationId = "com.example.travloc"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 24
+        minSdk = 21
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0.0"
+        versionName = "1.0"
     }
 
     buildTypes {
@@ -51,6 +51,12 @@ android {
             force("androidx.core:core-ktx:1.12.0")
         }
     }
+}
+
+dependencies {
+    implementation("com.google.android.play:core:1.10.3")
+    implementation("com.google.android.play:core-ktx:1.8.1")
+    implementation("com.mapbox.maps:android:11.11.0")
 }
 
 flutter {
