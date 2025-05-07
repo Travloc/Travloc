@@ -160,11 +160,17 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
       itemCount: chats.length,
       itemBuilder: (context, index) {
         final chat = chats[index];
+        final pastelColor =
+            chat['type'] == 'guide'
+                ? const Color(0xFFB7A6FF)
+                : chat['type'] == 'buddy'
+                ? const Color(0xFFBFFF2A)
+                : const Color(0xFFFFD6E0);
         return GestureDetector(
           onTap: () => context.push('/messages/${chat['id']}'),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: pastelColor,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
@@ -181,22 +187,23 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    color:
-                        chat['type'] == 'guide'
-                            ? const Color(0xFFB7A6FF)
-                            : chat['type'] == 'buddy'
-                            ? const Color(0xFFBFFF2A)
-                            : const Color(0xFFFFD6E0),
+                    color: Colors.white,
                     shape: BoxShape.circle,
                   ),
                   padding: const EdgeInsets.all(10),
                   child: Text(
                     chat['name'][0],
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
+                    style:
+                        Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ) ??
+                        const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -206,19 +213,27 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
                     children: [
                       Text(
                         chat['name'],
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                          color: Colors.black,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: Colors.black,
+                            ) ??
+                            const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: Colors.black,
+                            ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         chat['lastMessage'],
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.black,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 13,
+                              color: Colors.black,
+                            ) ??
+                            const TextStyle(fontSize: 13, color: Colors.black),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -232,22 +247,34 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen>
                   children: [
                     Text(
                       chat['time'],
-                      style: const TextStyle(fontSize: 13, color: Colors.black),
+                      style:
+                          Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontSize: 13,
+                            color: Colors.black,
+                          ) ??
+                          const TextStyle(fontSize: 13, color: Colors.black),
                     ),
                     if (chat['unread'] > 0)
                       Container(
                         margin: const EdgeInsets.only(top: 6),
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFB7A6FF),
+                          color: Colors.white,
                           shape: BoxShape.circle,
                         ),
                         child: Text(
                           chat['unread'].toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: pastelColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ) ??
+                              const TextStyle(
+                                color: Color(0xFFB7A6FF),
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ),
                   ],

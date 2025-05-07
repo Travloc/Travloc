@@ -1,5 +1,16 @@
 # 🌍 Travloc UI/UX Documentation
 
+## 🚨 Legacy UI Modernization Checklist (Agentic Refactor)
+
+- [x] Conflict Resolution UI (`lib/core/widgets/conflict_resolution_ui.dart`)
+  - Refactored to use PreferenceTile, pastel backgrounds, theme-based colors, and AppButton. Legacy widgets and direct color usage removed.
+- [ ] Offline Support UI (`lib/core/widgets/offline_support_ui.dart`)
+  - Uses: `ListTile`, `AlertDialog`, legacy Card, direct color usage
+- [ ] Security Screen (`lib/features/profile/presentation/screens/security_screen.dart`)
+  - Uses: `ListTile`, `AlertDialog`, direct color usage, legacy paddings
+
+---
+
 ## 📋 Implementation Checklist
 
 ### Phase 1: Core Features (MVP)
@@ -1485,4 +1496,49 @@ class AIInteractionFlow {
 3. **Offline Sync Flow**
    ```
    Detect Offline → Queue Changes → Show Status → Auto-sync → Resolve Conflicts
-   ``` 
+   ```
+
+# Legacy UI Modernization Checklist
+
+Below is a prioritized checklist of all screens/components still using legacy UI patterns (e.g., AppBar, ListTile, AlertDialog, hardcoded colors/styles, direct TextStyle, etc.). Check off each item as it is modernized. 
+
+---
+
+## **Priority 1: Profile Section**
+- [x] **Preferences Screen** (`lib/features/profile/presentation/screens/preferences_screen.dart`)
+  - Refactored to use custom PreferenceTile and PreferenceDialog widgets, pastel backgrounds, modern switches, and standardized text styles.
+- [x] **About Screen** (`lib/features/profile/presentation/screens/about_screen.dart`)
+  - Refactored to use PreferenceTile for contact and legal items, pastel backgrounds, rounded corners, and standardized text styles.
+- [x] **Contact Support Screen** (`lib/features/profile/presentation/screens/contact_support_screen.dart`)
+  - Refactored to use PreferenceTile for support options, pastel backgrounds, rounded corners, and standardized text styles.
+- [x] **Help Center Screen** (`lib/features/profile/presentation/screens/help_center_screen.dart`)
+  - Refactored FAQ and section headers to use pastel backgrounds, rounded corners, and standardized text styles.
+- [x] **Profile Screen** (`lib/features/profile/presentation/screens/profile_screen.dart`)
+  - Refactored to use PreferenceTile for all profile section cards, pastel backgrounds, rounded corners, and standardized text styles.
+
+## **Priority 2: Guides Section**
+- [x] **Guide List Screen** (`lib/features/guides/presentation/screens/guide_list_screen.dart`)
+  - Refactored filter dialog to use PreferenceTile, modernized guide cards with pastel backgrounds, standardized text styles, and modern button style.
+- [x] **Guides Screen** (`lib/features/guides/presentation/screens/guides_screen.dart`)
+  - Refactored filter dialogs to use PreferenceTile, pastel backgrounds, rounded corners, and standardized text styles.
+- [x] **Shared Filter Widgets** (`lib/features/guides/presentation/widgets/shared_filter_widgets.dart`)
+  - Refactored SharedFilterDialog to use custom dialog with pastel background, rounded corners, and AppButton actions.
+
+## **Priority 3: Messages Section**
+- [x] **Messages Screen** (`lib/features/messages/presentation/screens/messages_screen.dart`)
+  - Refactored chat cards to use pastel backgrounds, standardized text styles, and modernized unread badge.
+
+## **Priority 4: Core/Navigation**
+- [x] **Bottom Navigation Bar** (`lib/core/widgets/navigation/bottom_navigation_bar.dart`)
+  - Refactored to use pastel backgrounds for selected icons, standardized icon colors, and modernized highlight style.
+
+## **General Patterns to Refactor (Global)**
+- [ ] Replace all `ListTile` with custom tile widgets using the design system
+- [ ] Replace all `AlertDialog`/`SimpleDialog` with custom modal/dialog widgets
+- [ ] Replace direct use of `Colors.white`, `Colors.black`, `Colors.grey`, etc. with theme or pastel palette
+- [ ] Replace direct `TextStyle` with standardized text styles
+- [ ] Standardize legacy paddings (e.g., `EdgeInsets.all(8)`, `EdgeInsets.symmetric(horizontal: 16)`) to match new spacing system
+
+---
+
+*Update this checklist as you modernize each screen/component. For each completed item, check the box and add a brief note on the update.* 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../services/offline_service.dart';
+import 'preference_tile.dart';
+import 'app_button.dart';
+import 'preference_dialog.dart';
 
 class OfflineSupportUI extends StatefulWidget {
   final OfflineService offlineService;
@@ -16,8 +18,19 @@ class _OfflineSupportUIState extends State<OfflineSupportUI> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3EDFF),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(10),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -29,36 +42,19 @@ class _OfflineSupportUIState extends State<OfflineSupportUI> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return ListTile(
-      leading: Icon(
-            widget.offlineService.isOfflineMode
-                ? Icons.cloud_off
-                : Icons.cloud_done,
-            color:
-                widget.offlineService.isOfflineMode
-                    ? Colors.orange
-                    : Colors.green,
-          )
-          .animate(onPlay: (controller) => controller.repeat())
-          .shimmer(
-            duration: const Duration(seconds: 2),
-            color:
-                widget.offlineService.isOfflineMode
-                    ? Colors.orange.withValues(alpha: 128)
-                    : Colors.green.withValues(alpha: 128),
-          ),
-      title: Text(
-        widget.offlineService.offlineStatus,
-        style: Theme.of(context).textTheme.titleMedium,
-      ),
-      subtitle: Text(
-        'Storage: ${widget.offlineService.storageStatus}',
-        style: Theme.of(context).textTheme.bodySmall,
-      ),
+    final isOffline = widget.offlineService.isOfflineMode;
+    return PreferenceTile(
+      icon: isOffline ? Icons.cloud_off : Icons.cloud_done,
+      title: widget.offlineService.offlineStatus,
+      subtitle: 'Storage: ${widget.offlineService.storageStatus}',
+      iconBackgroundColor:
+          isOffline ? const Color(0xFFFFE0B2) : const Color(0xFFC8E6C9),
+      backgroundColor: const Color(0xFFF3EDFF),
       trailing: IconButton(
         icon: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
         onPressed: () => setState(() => _isExpanded = !_isExpanded),
       ),
+      onTap: () => setState(() => _isExpanded = !_isExpanded),
     );
   }
 
@@ -89,13 +85,12 @@ class _OfflineSupportUIState extends State<OfflineSupportUI> {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.download),
-                label: const Text('Download Trip Data'),
+              child: AppButton(
+                text: 'Download Trip Data',
+                icon: Icons.download,
+                isOutlined: true,
                 onPressed: () {
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
-                  // Implement trip data download
-                  scaffoldMessenger.showSnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Downloading trip data...')),
                   );
                 },
@@ -103,14 +98,15 @@ class _OfflineSupportUIState extends State<OfflineSupportUI> {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.upload),
-                label: const Text('Upload Changes'),
+              child: AppButton(
+                text: 'Upload Changes',
+                icon: Icons.upload,
+                isOutlined: true,
                 onPressed: () async {
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  final messenger = ScaffoldMessenger.of(context);
                   await widget.offlineService.syncPendingChanges();
                   if (!mounted) return;
-                  scaffoldMessenger.showSnackBar(
+                  messenger.showSnackBar(
                     const SnackBar(
                       content: Text('Changes uploaded successfully'),
                     ),
@@ -133,13 +129,12 @@ class _OfflineSupportUIState extends State<OfflineSupportUI> {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.person),
-                label: const Text('Save Profile'),
+              child: AppButton(
+                text: 'Save Profile',
+                icon: Icons.person,
+                isOutlined: true,
                 onPressed: () {
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
-                  // Implement profile save
-                  scaffoldMessenger.showSnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Profile saved offline')),
                   );
                 },
@@ -147,14 +142,15 @@ class _OfflineSupportUIState extends State<OfflineSupportUI> {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.sync),
-                label: const Text('Sync Profile'),
+              child: AppButton(
+                text: 'Sync Profile',
+                icon: Icons.sync,
+                isOutlined: true,
                 onPressed: () async {
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  final messenger = ScaffoldMessenger.of(context);
                   await widget.offlineService.syncPendingChanges();
                   if (!mounted) return;
-                  scaffoldMessenger.showSnackBar(
+                  messenger.showSnackBar(
                     const SnackBar(
                       content: Text('Profile synced successfully'),
                     ),
@@ -177,55 +173,38 @@ class _OfflineSupportUIState extends State<OfflineSupportUI> {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.storage),
-                label: const Text('Manage Storage'),
+              child: AppButton(
+                text: 'Manage Storage',
+                icon: Icons.storage,
+                isOutlined: true,
                 onPressed: () {
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
-                  final navigator = Navigator.of(context);
                   showDialog(
                     context: context,
                     builder:
-                        (context) => AlertDialog(
-                          title: const Text('Storage Management'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Current Usage: ${widget.offlineService.storageStatus}',
-                              ),
-                              const SizedBox(height: 16),
-                              LinearProgressIndicator(
-                                value:
-                                    widget.offlineService.storageStatus
-                                            .contains('MB')
-                                        ? 0.8
-                                        : widget.offlineService.storageStatus
-                                            .contains('KB')
-                                        ? 0.4
-                                        : 0.1,
-                              ),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () async {
-                                await widget.offlineService.clearOfflineData();
-                                if (!mounted) return;
-                                navigator.pop();
-                                scaffoldMessenger.showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Offline data cleared'),
-                                  ),
-                                );
-                              },
-                              child: const Text('Clear All Data'),
-                            ),
-                            TextButton(
-                              onPressed: () => navigator.pop(),
-                              child: const Text('Close'),
-                            ),
-                          ],
+                        (context) => PreferenceDialog<String>(
+                          title: 'Storage Management',
+                          options: ['Clear All Data', 'Close'],
+                          selectedOption: '',
+                          optionLabel: (opt) => opt,
+                          onSelected: (opt) async {
+                            if (opt == 'Clear All Data') {
+                              final navigator = Navigator.of(context);
+                              final messenger = ScaffoldMessenger.of(context);
+                              await widget.offlineService.clearOfflineData();
+                              if (!mounted) return;
+                              navigator.pop();
+                              if (!mounted) return;
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text('Offline data cleared'),
+                                ),
+                              );
+                            } else {
+                              if (!mounted) return;
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          backgroundColor: const Color(0xFFF3EDFF),
                         ),
                   );
                 },
@@ -246,14 +225,15 @@ class _OfflineSupportUIState extends State<OfflineSupportUI> {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.sync),
-                label: const Text('Sync All Changes'),
+              child: AppButton(
+                text: 'Sync All Changes',
+                icon: Icons.sync,
+                isOutlined: true,
                 onPressed: () async {
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  final messenger = ScaffoldMessenger.of(context);
                   await widget.offlineService.syncPendingChanges();
                   if (!mounted) return;
-                  scaffoldMessenger.showSnackBar(
+                  messenger.showSnackBar(
                     const SnackBar(
                       content: Text('All changes synced successfully'),
                     ),
@@ -263,9 +243,10 @@ class _OfflineSupportUIState extends State<OfflineSupportUI> {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.settings),
-                label: const Text('Settings'),
+              child: AppButton(
+                text: 'Settings',
+                icon: Icons.settings,
+                isOutlined: true,
                 onPressed: () {
                   // Implement settings dialog
                 },

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/shared_filter_widgets.dart';
+import 'package:travloc/core/widgets/preference_tile.dart';
 
 final guideFiltersProvider =
     StateNotifierProvider<GuideFilters, Map<String, dynamic>>((ref) {
@@ -227,29 +228,47 @@ class _GuideListScreenState extends ConsumerState<GuideListScreen> {
           (context) => SharedFilterDialog(
             title: 'Filter Guides',
             filterOptions: [
-              ListTile(
-                title: const Text('Price Range'),
-                trailing: const Icon(Icons.arrow_forward_ios),
+              PreferenceTile(
+                icon: Icons.monetization_on,
+                title: 'Price Range',
                 onTap: () {
                   Navigator.pop(context);
                   _showPriceRangePicker();
                 },
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.black,
+                ),
+                backgroundColor: const Color(0xFFF3EDFF),
+                iconBackgroundColor: const Color(0xFFD1C4E9),
               ),
-              ListTile(
-                title: const Text('Rating'),
-                trailing: const Icon(Icons.arrow_forward_ios),
+              PreferenceTile(
+                icon: Icons.star,
+                title: 'Rating',
                 onTap: () {
                   Navigator.pop(context);
                   _showRatingFilter();
                 },
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.black,
+                ),
+                backgroundColor: const Color(0xFFF3EDFF),
+                iconBackgroundColor: const Color(0xFFD1C4E9),
               ),
-              ListTile(
-                title: const Text('Languages'),
-                trailing: const Icon(Icons.arrow_forward_ios),
+              PreferenceTile(
+                icon: Icons.language,
+                title: 'Languages',
                 onTap: () {
                   Navigator.pop(context);
                   _showLanguageFilter();
                 },
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.black,
+                ),
+                backgroundColor: const Color(0xFFF3EDFF),
+                iconBackgroundColor: const Color(0xFFD1C4E9),
               ),
             ],
             onApply: () => Navigator.pop(context),
@@ -297,12 +316,20 @@ class _GuideListScreenState extends ConsumerState<GuideListScreen> {
                         Expanded(
                           child: Text(
                             'Guide Name',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.black,
-                              letterSpacing: 0.2,
-                            ),
+                            style:
+                                Theme.of(
+                                  context,
+                                ).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                  letterSpacing: 0.2,
+                                ) ??
+                                const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                  letterSpacing: 0.2,
+                                ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -332,30 +359,44 @@ class _GuideListScreenState extends ConsumerState<GuideListScreen> {
                         const SizedBox(width: 3),
                         Text(
                           '4.8',
-                          style: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w600,
+                              ) ??
+                              const TextStyle(
+                                color: Colors.black,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
                         ),
                         const SizedBox(width: 3),
                         Text(
                           '(120)',
-                          style: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 12,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.black54,
+                              ) ??
+                              const TextStyle(
+                                color: Colors.black54,
+                                fontSize: 12,
+                              ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Specializes in adventure tours and cultural experiences.',
-                      style: TextStyle(
-                        color: Colors.grey[800],
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400,
-                      ),
+                      style:
+                          Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w400,
+                          ) ??
+                          const TextStyle(
+                            color: Colors.black,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -365,15 +406,19 @@ class _GuideListScreenState extends ConsumerState<GuideListScreen> {
                         const Icon(
                           Icons.location_on,
                           size: 13,
-                          color: Colors.grey,
+                          color: Color(0xFFB7A6FF),
                         ),
                         const SizedBox(width: 3),
                         Text(
                           'Barcelona, Spain',
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 12,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.black54,
+                              ) ??
+                              const TextStyle(
+                                color: Colors.black54,
+                                fontSize: 12,
+                              ),
                         ),
                       ],
                     ),
@@ -385,8 +430,8 @@ class _GuideListScreenState extends ConsumerState<GuideListScreen> {
                 padding: const EdgeInsets.only(left: 10, top: 2),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
+                    backgroundColor: const Color(0xFFB7A6FF),
+                    foregroundColor: Colors.black,
                     minimumSize: const Size(56, 32),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,

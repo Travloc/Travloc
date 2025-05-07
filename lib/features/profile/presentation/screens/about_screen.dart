@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:travloc/core/widgets/preference_tile.dart';
 
 class AboutScreen extends ConsumerStatefulWidget {
   const AboutScreen({super.key});
@@ -257,49 +258,14 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     IconData icon,
     VoidCallback onTap,
   ) {
-    return GestureDetector(
+    return PreferenceTile(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-        child: Row(
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFFF7F8FA),
-                shape: BoxShape.circle,
-              ),
-              padding: const EdgeInsets.all(8),
-              child: Icon(icon, color: Colors.black, size: 20),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                      fontSize: 15,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Colors.black, fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.black),
-          ],
-        ),
-      ),
+      trailing: const Icon(Icons.chevron_right, color: Colors.black),
+      backgroundColor: const Color(0xFFF3EDFF),
+      iconBackgroundColor: const Color(0xFFD1C4E9),
     );
   }
 
@@ -308,31 +274,13 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     String title,
     VoidCallback onTap,
   ) {
-    return GestureDetector(
+    return PreferenceTile(
+      icon: Icons.gavel,
+      title: title,
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  fontSize: 15,
-                ),
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.black),
-          ],
-        ),
-      ),
+      trailing: const Icon(Icons.chevron_right, color: Colors.black),
+      backgroundColor: const Color(0xFFF3EDFF),
+      iconBackgroundColor: const Color(0xFFD1C4E9),
     );
   }
 }

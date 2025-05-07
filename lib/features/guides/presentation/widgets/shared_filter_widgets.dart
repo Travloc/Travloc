@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:travloc/core/widgets/app_button.dart';
 
 /// Shared Search Bar Widget
 class SharedSearchBar extends StatelessWidget {
@@ -56,18 +57,41 @@ class SharedFilterDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(title),
-      content: SingleChildScrollView(
-        child: Column(mainAxisSize: MainAxisSize.min, children: filterOptions),
-      ),
-      actions: [
-        TextButton(
-          onPressed: onCancel ?? () => Navigator.pop(context),
-          child: const Text('Cancel'),
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: const Color(0xFFF3EDFF),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 18),
+            ...filterOptions,
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                AppButton(
+                  text: 'Cancel',
+                  isOutlined: true,
+                  onPressed: onCancel ?? () => Navigator.pop(context),
+                ),
+                const SizedBox(width: 8),
+                AppButton(text: 'Apply', onPressed: onApply),
+              ],
+            ),
+          ],
         ),
-        TextButton(onPressed: onApply, child: const Text('Apply')),
-      ],
+      ),
     );
   }
 }

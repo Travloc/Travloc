@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:travloc/core/widgets/preference_tile.dart';
+import 'package:travloc/core/widgets/preference_dialog.dart';
 
 final preferencesProvider =
     StateNotifierProvider<PreferencesState, Map<String, dynamic>>((ref) {
@@ -219,21 +221,14 @@ class PreferencesScreen extends ConsumerWidget {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: Colors.black),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.black,
-        ),
-      ),
-      subtitle: Text(subtitle, style: const TextStyle(color: Colors.black)),
-      trailing: const Icon(Icons.arrow_forward_ios, color: Colors.black),
+    return PreferenceTile(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
       onTap: onTap,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      tileColor: Colors.transparent,
+      trailing: const Icon(Icons.arrow_forward_ios, color: Colors.black),
+      backgroundColor: const Color(0xFFF3EDFF),
+      iconBackgroundColor: const Color(0xFFD1C4E9),
     );
   }
 
@@ -244,131 +239,93 @@ class PreferencesScreen extends ConsumerWidget {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.black),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-        ),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          activeColor: Colors.black,
-          activeTrackColor: Colors.white,
-          inactiveThumbColor: Colors.white,
-          inactiveTrackColor: Colors.black26,
-        ),
-      ],
+    return PreferenceTile(
+      icon: icon,
+      title: title,
+      trailing: Switch(
+        value: value,
+        onChanged: onChanged,
+        activeColor: const Color(0xFFB7A6FF),
+        inactiveThumbColor: Colors.white,
+        inactiveTrackColor: Colors.black26,
+      ),
+      backgroundColor: const Color(0xFFF3EDFF),
+      iconBackgroundColor: const Color(0xFFD1C4E9),
     );
   }
 
   void _showLanguageDialog(BuildContext context, WidgetRef ref) {
     final languages = ['English', 'Spanish', 'French', 'German', 'Italian'];
+    final selected = ref.read(preferencesProvider)['language'] as String;
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Select Language'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children:
-                  languages.map((language) {
-                    return ListTile(
-                      title: Text(language),
-                      onTap: () {
-                        ref
-                            .read(preferencesProvider.notifier)
-                            .updatePreference('language', language);
-                        Navigator.pop(context);
-                      },
-                    );
-                  }).toList(),
-            ),
+          (context) => PreferenceDialog<String>(
+            title: 'Select Language',
+            options: languages,
+            selectedOption: selected,
+            optionLabel: (lang) => lang,
+            onSelected:
+                (lang) => ref
+                    .read(preferencesProvider.notifier)
+                    .updatePreference('language', lang),
           ),
     );
   }
 
   void _showCurrencyDialog(BuildContext context, WidgetRef ref) {
     final currencies = ['USD', 'EUR', 'GBP', 'JPY', 'AUD'];
+    final selected = ref.read(preferencesProvider)['currency'] as String;
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Select Currency'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children:
-                  currencies.map((currency) {
-                    return ListTile(
-                      title: Text(currency),
-                      onTap: () {
-                        ref
-                            .read(preferencesProvider.notifier)
-                            .updatePreference('currency', currency);
-                        Navigator.pop(context);
-                      },
-                    );
-                  }).toList(),
-            ),
+          (context) => PreferenceDialog<String>(
+            title: 'Select Currency',
+            options: currencies,
+            selectedOption: selected,
+            optionLabel: (cur) => cur,
+            onSelected:
+                (cur) => ref
+                    .read(preferencesProvider.notifier)
+                    .updatePreference('currency', cur),
           ),
     );
   }
 
   void _showDistanceUnitDialog(BuildContext context, WidgetRef ref) {
     final units = ['km', 'miles'];
+    final selected = ref.read(preferencesProvider)['distanceUnit'] as String;
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Select Distance Unit'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children:
-                  units.map((unit) {
-                    return ListTile(
-                      title: Text(unit),
-                      onTap: () {
-                        ref
-                            .read(preferencesProvider.notifier)
-                            .updatePreference('distanceUnit', unit);
-                        Navigator.pop(context);
-                      },
-                    );
-                  }).toList(),
-            ),
+          (context) => PreferenceDialog<String>(
+            title: 'Select Distance Unit',
+            options: units,
+            selectedOption: selected,
+            optionLabel: (unit) => unit,
+            onSelected:
+                (unit) => ref
+                    .read(preferencesProvider.notifier)
+                    .updatePreference('distanceUnit', unit),
           ),
     );
   }
 
   void _showTemperatureUnitDialog(BuildContext context, WidgetRef ref) {
     final units = ['Celsius', 'Fahrenheit'];
+    final selected = ref.read(preferencesProvider)['temperatureUnit'] as String;
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Select Temperature Unit'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children:
-                  units.map((unit) {
-                    return ListTile(
-                      title: Text(unit),
-                      onTap: () {
-                        ref
-                            .read(preferencesProvider.notifier)
-                            .updatePreference('temperatureUnit', unit);
-                        Navigator.pop(context);
-                      },
-                    );
-                  }).toList(),
-            ),
+          (context) => PreferenceDialog<String>(
+            title: 'Select Temperature Unit',
+            options: units,
+            selectedOption: selected,
+            optionLabel: (unit) => unit,
+            onSelected:
+                (unit) => ref
+                    .read(preferencesProvider.notifier)
+                    .updatePreference('temperatureUnit', unit),
           ),
     );
   }

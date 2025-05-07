@@ -99,11 +99,17 @@ class HelpCenterScreen extends ConsumerWidget {
           padding: const EdgeInsets.only(left: 4, bottom: 10, top: 2),
           child: Text(
             title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: Colors.white,
-            ),
+            style:
+                Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFB7A6FF),
+                  fontSize: 20,
+                ) ??
+                const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFB7A6FF),
+                  fontSize: 20,
+                ),
           ),
         ),
         ...children,
@@ -130,27 +136,48 @@ class HelpCenterScreen extends ConsumerWidget {
         ],
       ),
       margin: const EdgeInsets.only(bottom: 10),
-      child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-        title: Text(
-          question,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          dividerColor: Colors.transparent,
+          splashColor: color.withAlpha(40),
+          highlightColor: color.withAlpha(30),
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        collapsedShape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        backgroundColor: color,
-        collapsedBackgroundColor: color,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(answer, style: const TextStyle(color: Colors.black)),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+          title: Text(
+            question,
+            style:
+                Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ) ??
+                const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
           ),
-        ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          collapsedShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: color,
+          collapsedBackgroundColor: color,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                answer,
+                style:
+                    Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.black) ??
+                    const TextStyle(color: Colors.black),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

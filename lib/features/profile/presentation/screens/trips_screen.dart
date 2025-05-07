@@ -11,27 +11,136 @@ class TripsScreen extends ConsumerWidget {
     final tripsAsyncValue = ref.watch(tripsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Trips')),
-      body: tripsAsyncValue.when(
-        data: (trips) {
-          if (trips.isEmpty) {
-            return const Center(
-              child: Text('No trips yet. Start planning your next adventure!'),
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: trips.length,
-            itemBuilder: (context, index) {
-              final trip = trips[index];
-              return _TripCard(trip: trip);
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
+      backgroundColor: const Color(0xFF181A20),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(6, 12, 6, 0),
+          children: [
+            // Custom header
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha((0.08 * 255).toInt()),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+              margin: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.card_travel,
+                    color: Color(0xFFB7A6FF),
+                    size: 28,
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'My Trips',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ...tripsAsyncValue.when(
+              data: (trips) {
+                if (trips.isEmpty) {
+                  return <Widget>[
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFD6E0),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha((0.08 * 255).toInt()),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 32,
+                        horizontal: 18,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: const Center(
+                        child: Text(
+                          'No trips yet. Start planning your next adventure!',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ];
+                }
+                return trips
+                    .map<Widget>((trip) => _TripCard(trip: trip))
+                    .toList();
+              },
+              loading:
+                  () => <Widget>[
+                    Container(
+                      height: 200,
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator(
+                        color: Color(0xFFB7A6FF),
+                      ),
+                    ),
+                  ],
+              error:
+                  (error, stack) => <Widget>[
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFD6E0),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha((0.08 * 255).toInt()),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 32,
+                        horizontal: 18,
+                      ),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: Center(
+                        child: Text(
+                          'Error: $error',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFB7A6FF),
+        foregroundColor: Colors.black,
         onPressed: () {
           Navigator.pushNamed(context, '/create-trip');
         },

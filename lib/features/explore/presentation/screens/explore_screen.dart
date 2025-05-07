@@ -7,6 +7,8 @@ import 'package:travloc/features/explore/domain/models/attraction_list.dart';
 import 'package:travloc/features/explore/domain/services/voice_recognition_service.dart';
 import 'package:travloc/features/explore/domain/services/ai_service.dart';
 import 'package:travloc/features/explore/domain/services/api_service.dart';
+import 'package:travloc/core/widgets/ai_manual_toggle.dart';
+import 'package:logger/logger.dart';
 
 // Map controller to handle map operations
 class MapController {
@@ -63,6 +65,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
   final VoiceRecognitionService _voiceRecognitionService =
       VoiceRecognitionService();
   late final AIService _aiService;
+  bool _isVoiceMode = true;
+  final Logger _logger = Logger();
+  late final AnimationController _expandController;
+  late final Animation<double> _expandAnim;
+
+  static const double _tripCardMinHeight = 72 + 32; // 72 (child) + 16*2 (vertical padding)
+  static const double _gap = 6; // gap between cards
+  double? _mapMaxHeight;
 
   @override
   void initState() {
@@ -71,6 +81,20 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
     _checkLocationPermission();
     _startCompassUpdates();
     _simulateNextEvent();
+    _expandController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    );
+    _expandAnim = CurvedAnimation(
+      parent: _expandController,
+      curve: Curves.linear,
+    );
+  }
+
+  @override
+  void dispose() {
+    _expandController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkLocationPermission() async {
@@ -245,266 +269,282 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
     await _centerMapOnLocation(messenger);
   }
 
+  void _onToggleMode(bool voiceMode) {
+    setState(() {
+      _isVoiceMode = voiceMode;
+    });
+    if (voiceMode) {
+      _expandController.reverse();
+    } else {
+      _expandController.forward();
+    }
+    _logger.i('Mode: ${voiceMode ? 'Voice' : 'Manual'}');
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF181A20),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Voice Card (AI Planner)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(6, 12, 6, 0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFBFFF2A), // vibrant lime
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha((0.08 * 255).toInt()),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                  horizontal: 16,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate available height for map card
+        final double eventCardHeight = 110; // estimate, or measure if needed
+        final double availableHeight = constraints.maxHeight - _tripCardMinHeight - _gap - eventCardHeight - _gap - 32; // 32 for SafeArea and padding fudge
+        _mapMaxHeight = availableHeight > 0 ? availableHeight : 200;
+        return Scaffold(
+          backgroundColor: const Color(0xFF181A20),
+          body: SafeArea(
+            child: AnimatedBuilder(
+              animation: _expandAnim,
+              builder: (context, child) {
+                final double tripCardHeight = _tripCardMinHeight + (_mapMaxHeight! * _expandAnim.value);
+                final double mapCardHeight = _mapMaxHeight! * (1 - _expandAnim.value);
+                return Column(
                   children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.person,
-                        color: Colors.grey[400],
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Hi 👋 Daniel!\nWelcome back',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black87,
+                    // AI Trip Planner Card (expanding)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(6, 12, 6, 0),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.linear,
+                        height: tripCardHeight,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFBFFF2A),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha((0.08 * 255).toInt()),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
                             ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Tap to speak',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
+                          ],
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                        child: Stack(
+                          children: [
+                            // The expanding background
+                            Positioned.fill(child: SizedBox()),
+                            // The fixed mic and toggle row
+                            Align(
+                              alignment: Alignment.topCenter,
+                              child: SizedBox(
+                                height: _tripCardMinHeight,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    if (_isVoiceMode)
+                                      Material(
+                                        color: Colors.white,
+                                        shape: const CircleBorder(),
+                                        elevation: 2,
+                                        child: InkWell(
+                                          customBorder: const CircleBorder(),
+                                          onTap: _handleVoiceInput,
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(14),
+                                            child: Icon(
+                                              Icons.mic,
+                                              color: Colors.teal[400],
+                                              size: 36,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    Spacer(flex: 1),
+                                    VoiceManualToggle(
+                                      isVoiceMode: _isVoiceMode,
+                                      onChanged: _onToggleMode,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Material(
-                      color: Colors.white,
-                      shape: const CircleBorder(),
-                      elevation: 2,
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: _handleVoiceInput,
-                        child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Icon(
-                            Icons.mic,
-                            color: Colors.teal[400],
-                            size: 28,
-                          ),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            // Map Card (Expanded)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white, // clear white
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha((0.08 * 255).toInt()),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
+                    SizedBox(height: _gap),
+                    // Map Card (collapsing)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.linear,
+                        height: mapCardHeight,
                         child: Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              'Map View',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black54,
-                                fontWeight: FontWeight.w600,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withAlpha((0.08 * 255).toInt()),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                            ),
+                            ],
                           ),
-                        ),
-                      ),
-                      Positioned(
-                        right: 18,
-                        bottom: 18,
-                        child: Row(
-                          children: [
-                            Material(
-                              color: const Color(0xFFD6E6FF),
-                              shape: const CircleBorder(),
-                              elevation: 1,
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.my_location,
-                                  color: Colors.blueAccent,
-                                  size: 22,
-                                ),
-                                onPressed:
-                                    () => _handleLocationButtonPress(context),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Material(
-                              color: const Color(0xFFD6E6FF),
-                              shape: const CircleBorder(),
-                              elevation: 1,
-                              child: IconButton(
-                                icon: Transform.rotate(
-                                  angle:
-                                      _compassHeading *
-                                      (3.141592653589793 / 180),
-                                  child: const Icon(
-                                    Icons.explore,
-                                    color: Colors.blueAccent,
-                                    size: 22,
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      'Map View',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black54,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                onPressed: _resetMapOrientation,
                               ),
-                            ),
-                          ],
+                              Positioned(
+                                right: 18,
+                                bottom: 18,
+                                child: Row(
+                                  children: [
+                                    Material(
+                                      color: const Color(0xFFD6E6FF),
+                                      shape: const CircleBorder(),
+                                      elevation: 1,
+                                      child: IconButton(
+                                        icon: Icon(
+                                          Icons.my_location,
+                                          color: Colors.blueAccent,
+                                          size: 22,
+                                        ),
+                                        onPressed: () => _handleLocationButtonPress(context),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Material(
+                                      color: const Color(0xFFD6E6FF),
+                                      shape: const CircleBorder(),
+                                      elevation: 1,
+                                      child: IconButton(
+                                        icon: Transform.rotate(
+                                          angle: _compassHeading * (3.141592653589793 / 180),
+                                          child: const Icon(
+                                            Icons.explore,
+                                            color: Colors.blueAccent,
+                                            size: 22,
+                                          ),
+                                        ),
+                                        onPressed: _resetMapOrientation,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Event Card
-            Padding(
-              padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFB7A6FF), // purple
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha((0.08 * 255).toInt()),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
                     ),
-                  ],
-                ),
-                padding: const EdgeInsets.symmetric(
-                  vertical: 14,
-                  horizontal: 16,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.event,
-                              color: Colors.black,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Next Event',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black,
-                              ),
+                    SizedBox(height: _gap),
+                    // Event Card (unchanged)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFB7A6FF),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha((0.08 * 255).toInt()),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
                             ),
                           ],
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Color(0xFFBFFF2A), // vibrant lime
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: GestureDetector(
-                            onTap: _navigateToEvents,
-                            child: const Text(
-                              'View All',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
+                        padding: const EdgeInsets.only(
+                          top: 14,
+                          left: 16,
+                          right: 16,
+                          bottom: 40, // Increased bottom padding
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.event,
+                                      color: Colors.black,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Next Event',
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFBFFF2A),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: GestureDetector(
+                                    onTap: _navigateToEvents,
+                                    child: const Text(
+                                      'View All',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _nextEventTime != null
+                                  ? 'Upcoming event in ${_nextEventTime!.difference(DateTime.now()).inMinutes} minutes'
+                                  : 'No upcoming events',
+                              style: const TextStyle(
                                 fontSize: 13,
                                 color: Colors.black,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                          ),
+                            const SizedBox(height: 8),
+                            LinearProgressIndicator(
+                              value: _eventProgress,
+                              backgroundColor: Colors.white,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.amber[700]!,
+                              ),
+                              minHeight: 5,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      _nextEventTime != null
-                          ? 'Upcoming event in ${_nextEventTime!.difference(DateTime.now()).inMinutes} minutes'
-                          : 'No upcoming events',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      value: _eventProgress,
-                      backgroundColor: Colors.white,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.amber[700]!,
-                      ),
-                      minHeight: 5,
                     ),
                   ],
-                ),
-              ),
+                );
+              },
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

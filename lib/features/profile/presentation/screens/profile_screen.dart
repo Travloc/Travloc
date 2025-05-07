@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/segmented_tab_control.dart';
+import 'package:travloc/core/widgets/preference_tile.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -373,44 +374,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     VoidCallback onTap, {
     required Color color,
   }) {
-    return GestureDetector(
+    return PreferenceTile(
+      icon: icon,
+      title: title,
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: color.withAlpha(30),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        margin: const EdgeInsets.only(bottom: 6),
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        child: Row(
-          children: [
-            Container(
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              padding: const EdgeInsets.all(12),
-              child: Icon(icon, color: Colors.black, size: 26),
-            ),
-            const SizedBox(width: 18),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 17,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.black),
-          ],
-        ),
-      ),
+      trailing: const Icon(Icons.chevron_right, color: Colors.black),
+      backgroundColor: color,
+      iconBackgroundColor: Colors.white,
     );
   }
 }
